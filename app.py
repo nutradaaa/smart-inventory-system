@@ -103,4 +103,5 @@ def scan_expiry():
         return jsonify({"success": False, "message": "ไม่พบวันที่ในภาพ", "raw_text": text})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)

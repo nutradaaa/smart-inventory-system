@@ -1,25 +1,60 @@
+import os
 import sqlite3
 from datetime import date
 from translations import CATEGORY_KEY_MAP
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
 
 def get_connection():
-    conn = sqlite3.connect("inventory.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+    if DATABASE_URL:
+        import psycopg2
+        import psycopg2.extras
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+        conn.cursor_factory = psycopg2.extras.RealDictCursor
+        return conn
+    else:
+        conn = sqlite3.connect("inventory.db")
+        conn.row_factory = sqlite3.Row
+        return conn
+
+
+def get_placeholder():
+    return "%s" if DATABASE_URL else "?"
+
 
 def init_db():
     conn = get_connection()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            category TEXT,
-            expiry_date TEXT,
-            barcode TEXT
-        )
-    """)
+    cur = conn.cursor()
+
+    if DATABASE_URL:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS items (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                category TEXT,
+                expiry_date TEXT,
+                barcode TEXT
+            )
+        """)
+    else:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                category TEXT,
+                expiry_date TEXT,
+                barcode TEXT
+            )
+        """)
+
     conn.commit()
+    cur.close()
     conn.close()
+
 
 def calculate_status(expiry_date_str):
     expiry = date.fromisoformat(expiry_date_str)
@@ -41,22 +76,28 @@ def calculate_status(expiry_date_str):
     else:
         return {"code": "normal", "level": "normal", "days_left": days_left}
 
+
 def get_all_items(search=None, category=None):
     conn = get_connection()
+    cur = conn.cursor()
+    p = get_placeholder()
+
     query = "SELECT * FROM items WHERE 1=1"
     params = []
 
     if search:
-        query += " AND name LIKE ?"
+        query += f" AND name LIKE {p}"
         params.append(f"%{search}%")
 
     if category:
-        query += " AND category = ?"
+        query += f" AND category = {p}"
         params.append(category)
 
     query += " ORDER BY expiry_date ASC"
 
-    rows = conn.execute(query, params).fetchall()
+    cur.execute(query, params)
+    rows = cur.fetchall()
+    cur.close()
     conn.close()
 
     items = []
@@ -67,30 +108,47 @@ def get_all_items(search=None, category=None):
 
     return items
 
+
 def delete_item(item_id):
     conn = get_connection()
-    conn.execute("DELETE FROM items WHERE id = ?", (item_id,))
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(f"DELETE FROM items WHERE id = {p}", (item_id,))
     conn.commit()
+    cur.close()
     conn.close()
+
 
 def get_item_by_id(item_id):
     conn = get_connection()
-    item = conn.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(f"SELECT * FROM items WHERE id = {p}", (item_id,))
+    item = cur.fetchone()
+    cur.close()
     conn.close()
     return item
 
+
 def update_item(item_id, name, category, expiry_date):
     conn = get_connection()
-    conn.execute(
-        "UPDATE items SET name = ?, category = ?, expiry_date = ? WHERE id = ?",
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(
+        f"UPDATE items SET name = {p}, category = {p}, expiry_date = {p} WHERE id = {p}",
         (name, category, expiry_date, item_id)
     )
     conn.commit()
+    cur.close()
     conn.close()
+
 
 def get_dashboard_stats():
     conn = get_connection()
-    rows = conn.execute("SELECT * FROM items").fetchall()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM items")
+    rows = cur.fetchall()
+    cur.close()
     conn.close()
 
     total = len(rows)
@@ -127,9 +185,13 @@ def get_dashboard_stats():
         "level_values": list(level_counts.values())
     }
 
+
 def get_recommendations(t):
     conn = get_connection()
-    rows = conn.execute("SELECT * FROM items").fetchall()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM items")
+    rows = cur.fetchall()
+    cur.close()
     conn.close()
 
     recommendations = []
