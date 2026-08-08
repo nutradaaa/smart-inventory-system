@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ t['edit_item_page_title'] }}</title>
+    <style>
+        @font-face {
+            font-family: 'Lookpeach';
+            src: url('/static/fonts/lookpeach.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Lookpeach', sans-serif;
+            background-color: #e2d6f7;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.75) 1.6px, transparent 1.6px);
+            background-size: 26px 26px;
+            color: #333333;
+            min-height: 100vh;
+        }
+
+        .page-wrap {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #7a5bb5;
+            text-decoration: none;
+            font-size: 1.05rem;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        h1 {
+            font-size: 2.2rem;
+            margin: 0 0 28px;
+            font-weight: normal;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 2px solid #333333;
+            border-radius: 28px;
+            padding: 32px;
+        }
+
+        label {
+            display: block;
+            font-size: 1.05rem;
+            margin: 18px 0 8px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.05rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 12px 20px;
+            outline: none;
+            background: #ffffff;
+            color: #333333;
+        }
+
+        .save-btn {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.15rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 14px 36px;
+            background: #ffaed4;
+            cursor: pointer;
+            margin-top: 28px;
+            width: 100%;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 16px;
+            right: 20px;
+            width: 130px;
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrap">
+        <a href="/" class="back-link">{{ t['back_to_list'] }}</a>
+        <h1>{{ t['edit_item_heading'] }}</h1>
+
+        <div class="card">
+            <form action="/update/{{ item['id'] }}" method="POST">
+                <label for="name">{{ t['label_name'] }}</label>
+                <input type="text" id="name" name="name" value="{{ item['name'] }}" required>
+
+                <label for="category">{{ t['label_category'] }}</label>
+                <select id="category" name="category">
+                    <option value="อาหาร" {% if item['category'] == 'อาหาร' %}selected{% endif %}>{{ t['category_food'] }}</option>
+                    <option value="ยา" {% if item['category'] == 'ยา' %}selected{% endif %}>{{ t['category_medicine'] }}</option>
+                    <option value="เครื่องปรุง" {% if item['category'] == 'เครื่องปรุง' %}selected{% endif %}>{{ t['category_seasoning'] }}</option>
+                    <option value="เครื่องสำอาง" {% if item['category'] == 'เครื่องสำอาง' %}selected{% endif %}>{{ t['category_cosmetic'] }}</option>
+                </select>
+
+                <label for="expiry_date">{{ t['label_expiry'] }}</label>
+                <input type="date" id="expiry_date" name="expiry_date" value="{{ item['expiry_date'] }}" required>
+
+                <button type="submit" class="save-btn">{{ t['save_edit_btn'] }}</button>
+            </form>
+        </div>
+    </div>
+
+    <img src="{{ url_for('static', filename='images/watermark.png') }}" class="watermark" alt="watermark">
+</body>
+</html>

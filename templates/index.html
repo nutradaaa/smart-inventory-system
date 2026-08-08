@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ t['page_title'] }}</title>
+    <style>
+        @font-face {
+            font-family: 'Lookpeach';
+            src: url('/static/fonts/lookpeach.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Lookpeach', sans-serif;
+            background: #ffffff;
+            color: #333333;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 48px;
+            background-color: #ffffff;
+            background-image: radial-gradient(rgba(205, 184, 240, 0.6) 1.6px, transparent 1.6px);
+            background-size: 26px 26px;
+            border-bottom: 2px solid #333333;
+        }
+
+        .logo {
+            font-family: 'Lookpeach', sans-serif;
+            font-weight: normal;
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+            margin: 0;
+            color: #333333;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 14px;
+        }
+
+        .lang-btn {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.1rem;
+            padding: 10px 26px;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            text-decoration: none;
+            color: #333333;
+            background: #cdb8f0;
+            transition: background 0.15s ease;
+        }
+
+        .lang-btn.active {
+            background: #a780e8;
+        }
+
+        .content-area {
+            background-color: #e2d6f7;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.75) 1.6px, transparent 1.6px);
+            background-size: 26px 26px;
+            padding: 32px 48px 70px;
+            min-height: 100vh;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .search-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pill-select,
+        .pill-input {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.05rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 11px 22px;
+            background: #ffffff;
+            color: #333333;
+            outline: none;
+        }
+
+        .pill-input {
+            min-width: 260px;
+        }
+
+        .pill-select {
+            cursor: pointer;
+        }
+
+        .search-btn-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #333333;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .clear-btn {
+            font-family: 'Lookpeach', sans-serif;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            background: #ffffff;
+            padding: 11px 26px;
+            text-decoration: none;
+            color: #333333;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .dashboard-btn,
+        .add-btn {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.1rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 13px 30px;
+            text-decoration: none;
+            color: #333333;
+        }
+
+        .dashboard-btn {
+            background: #ffffff;
+        }
+
+        .add-btn {
+            background: #ffaed4;
+        }
+
+        .table-wrap {
+            background: #ffffff;
+            border-radius: 28px;
+            border: 2px solid #333333;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Lookpeach', sans-serif;
+        }
+
+        th {
+            font-size: 1.2rem;
+            padding: 20px 16px;
+            border-bottom: 2px solid #333333;
+            text-align: center;
+        }
+
+        td {
+            padding: 16px;
+            border-top: 1px solid #333333;
+            text-align: center;
+            font-size: 1.02rem;
+        }
+
+        th:not(:last-child),
+        td:not(:last-child) {
+            border-right: 1px solid #333333;
+        }
+
+        td a {
+            color: #7a5bb5;
+            text-decoration: none;
+        }
+
+        td a:hover {
+            text-decoration: underline;
+        }
+
+        .expired { background-color: #ffd6d6; }
+        .urgent { background-color: #ffe1b8; }
+        .high { background-color: #fff2c2; }
+        .medium { background-color: #fff9d6; }
+        .low { background-color: #dcf7dc; }
+        .normal { background-color: #ffffff; }
+
+        .watermark {
+            position: fixed;
+            bottom: 16px;
+            right: 20px;
+            width: 130px;
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <h1 class="logo">Smart Inventory System</h1>
+        <div class="lang-switch">
+            <a href="/set-language/th" class="lang-btn {% if lang == 'th' %}active{% endif %}">ไทย</a>
+            <a href="/set-language/en" class="lang-btn {% if lang == 'en' %}active{% endif %}">English</a>
+            <a href="/set-language/ko" class="lang-btn {% if lang == 'ko' %}active{% endif %}">한국어</a>
+        </div>
+    </div>
+
+    <div class="content-area">
+
+        <div class="toolbar">
+            <form class="search-group" action="/" method="GET">
+                <select name="category" class="pill-select">
+                    <option value="">{{ t['all_categories'] }}</option>
+                    <option value="อาหาร" {% if category == 'อาหาร' %}selected{% endif %}>{{ t['category_food'] }}</option>
+                    <option value="ยา" {% if category == 'ยา' %}selected{% endif %}>{{ t['category_medicine'] }}</option>
+                    <option value="เครื่องปรุง" {% if category == 'เครื่องปรุง' %}selected{% endif %}>{{ t['category_seasoning'] }}</option>
+                    <option value="เครื่องสำอาง" {% if category == 'เครื่องสำอาง' %}selected{% endif %}>{{ t['category_cosmetic'] }}</option>
+                </select>
+
+                <input type="text" name="search" class="pill-input" placeholder="{{ t['search_placeholder'] }}" value="{{ search or '' }}">
+
+                <button type="submit" class="search-btn-circle">🔍</button>
+
+                <a href="/" class="clear-btn">{{ t['clear_search'] }}</a>
+            </form>
+
+            <div class="action-group">
+                <a href="/dashboard" class="dashboard-btn">{{ t['dashboard'] }}</a>
+                <a href="/add-item" class="add-btn">{{ t['add_item'] }}</a>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>{{ t['col_name'] }}</th>
+                    <th>{{ t['col_category'] }}</th>
+                    <th>{{ t['col_expiry'] }}</th>
+                    <th>{{ t['col_status'] }}</th>
+                    <th>{{ t['col_action'] }}</th>
+                </tr>
+                {% for item in items %}
+                <tr class="{{ item['status']['level'] }}">
+                    <td>{{ item['name'] }}</td>
+                    <td>{{ t.get(category_map.get(item['category']), item['category']) }}</td>
+                    <td>{{ item['expiry_date'] }}</td>
+                    <td>{{ t['status_' ~ item['status']['code']] }} ({{ item['status']['days_left'] }} {{ t['days_suffix'] }})</td>
+                    <td>
+                        <a href="/edit/{{ item['id'] }}">{{ t['edit'] }}</a> |
+                        <a href="/delete/{{ item['id'] }}">{{ t['delete'] }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+    </div>
+
+    <img src="{{ url_for('static', filename='images/watermark.png') }}" class="watermark" alt="watermark">
+</body>
+</html>

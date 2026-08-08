@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ t['add_item_page_title'] }}</title>
+    <style>
+        @font-face {
+            font-family: 'Lookpeach';
+            src: url('/static/fonts/lookpeach.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Lookpeach', sans-serif;
+            background-color: #e2d6f7;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.75) 1.6px, transparent 1.6px);
+            background-size: 26px 26px;
+            color: #333333;
+            min-height: 100vh;
+        }
+
+        .page-wrap {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #7a5bb5;
+            text-decoration: none;
+            font-size: 1.05rem;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        h1 {
+            font-size: 2.2rem;
+            margin: 0 0 28px;
+            font-weight: normal;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 2px solid #333333;
+            border-radius: 28px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        h3 {
+            margin-top: 0;
+            font-weight: normal;
+            font-size: 1.2rem;
+        }
+
+        video, img.preview {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 18px;
+            border: 2px solid #333333;
+            display: none;
+            margin-bottom: 14px;
+        }
+
+        .btn {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.05rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 12px 28px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333333;
+            display: inline-block;
+        }
+
+        .btn-camera { background: #cdb8f0; }
+        .btn-capture { background: #ffaed4; display: none; }
+
+        #ocrStatus {
+            margin-top: 14px;
+            font-size: 0.98rem;
+            color: #7a5bb5;
+            min-height: 1.4em;
+        }
+
+        label {
+            display: block;
+            font-size: 1.05rem;
+            margin: 18px 0 8px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.05rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 12px 20px;
+            outline: none;
+            background: #ffffff;
+            color: #333333;
+        }
+
+        .save-btn {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.15rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 14px 36px;
+            background: #ffaed4;
+            cursor: pointer;
+            margin-top: 28px;
+            width: 100%;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 16px;
+            right: 20px;
+            width: 130px;
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrap">
+        <a href="/" class="back-link">{{ t['back_to_list'] }}</a>
+        <h1>{{ t['add_item_heading'] }}</h1>
+
+        <div class="card">
+            <h3>{{ t['camera_section_title'] }}</h3>
+
+            <video id="cameraView" autoplay></video>
+            <canvas id="captureCanvas" style="display:none;"></canvas>
+            <img id="capturedPreview" class="preview">
+
+            <br>
+            <button type="button" class="btn btn-camera" onclick="openCamera()">{{ t['open_camera_btn'] }}</button>
+            <button type="button" class="btn btn-capture" id="captureBtn" onclick="capturePhoto()">{{ t['capture_btn'] }}</button>
+
+            <p id="ocrStatus"></p>
+        </div>
+
+        <div class="card">
+            <form action="/add" method="POST">
+                <label for="name">{{ t['label_name'] }}</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="category">{{ t['label_category'] }}</label>
+                <select id="category" name="category">
+                    <option value="อาหาร">{{ t['category_food'] }}</option>
+                    <option value="ยา">{{ t['category_medicine'] }}</option>
+                    <option value="เครื่องปรุง">{{ t['category_seasoning'] }}</option>
+                    <option value="เครื่องสำอาง">{{ t['category_cosmetic'] }}</option>
+                </select>
+
+                <label for="expiry_date">{{ t['label_expiry'] }}</label>
+                <input type="date" id="expiry_date" name="expiry_date" required>
+
+                <button type="submit" class="save-btn">{{ t['save_btn'] }}</button>
+            </form>
+        </div>
+    </div>
+
+    <img src="{{ url_for('static', filename='images/watermark.png') }}" class="watermark" alt="watermark">
+
+    <script>
+        const msgReading = "{{ t['ocr_reading'] }}";
+        const msgFound = "{{ t['ocr_found'] }}";
+        const msgNotFound = "{{ t['ocr_notfound'] }}";
+        const msgError = "{{ t['ocr_error'] }}";
+        const msgCameraError = "{{ t['camera_error'] }}";
+
+        let cameraStream = null;
+
+        function openCamera() {
+            const video = document.getElementById("cameraView");
+            const statusText = document.getElementById("ocrStatus");
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(function(stream) {
+                    cameraStream = stream;
+                    video.srcObject = stream;
+                    video.style.display = "block";
+                    document.getElementById("captureBtn").style.display = "inline-block";
+                    statusText.textContent = "";
+                })
+                .catch(function(err) {
+                    statusText.textContent = msgCameraError + err.message;
+                });
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById("cameraView");
+            const canvas = document.getElementById("captureCanvas");
+            const context = canvas.getContext("2d");
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const preview = document.getElementById("capturedPreview");
+            preview.src = canvas.toDataURL("image/jpeg");
+            preview.style.display = "block";
+
+            canvas.toBlob(function(blob) {
+                sendImageForOCR(blob);
+            }, "image/jpeg");
+
+            cameraStream.getTracks().forEach(function(track) {
+                track.stop();
+            });
+            video.style.display = "none";
+            document.getElementById("captureBtn").style.display = "none";
+        }
+
+        function sendImageForOCR(imageBlob) {
+            const statusText = document.getElementById("ocrStatus");
+            statusText.textContent = msgReading;
+
+            const formData = new FormData();
+            formData.append("image", imageBlob, "capture.jpg");
+
+            fetch("/scan-expiry", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("expiry_date").value = data.date;
+                    statusText.textContent = msgFound + data.date;
+                } else {
+                    statusText.textContent = msgNotFound;
+                }
+            })
+            .catch(error => {
+                statusText.textContent = msgError;
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>

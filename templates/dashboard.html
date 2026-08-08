@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ t['dashboard_page_title'] }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Lookpeach';
+            src: url('/static/fonts/lookpeach.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Lookpeach', sans-serif;
+            background-color: #e2d6f7;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.75) 1.6px, transparent 1.6px);
+            background-size: 26px 26px;
+            color: #333333;
+            min-height: 100vh;
+        }
+
+        .page-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #7a5bb5;
+            text-decoration: none;
+            font-size: 1.05rem;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        h1 {
+            font-size: 2.2rem;
+            margin: 0 0 28px;
+            font-weight: normal;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: normal;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 2px solid #333333;
+            border-radius: 28px;
+            padding: 28px 32px;
+        }
+
+        ul.rec-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        ul.rec-list li {
+            background: #fff2e8;
+            border: 2px solid #333333;
+            border-radius: 18px;
+            padding: 14px 20px;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            flex: 1;
+            min-width: 160px;
+            background: #ffffff;
+            border: 2px solid #333333;
+            border-radius: 22px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-box .num {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .charts-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .chart-card {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 16px;
+            right: 20px;
+            width: 130px;
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrap">
+        <a href="/" class="back-link">{{ t['back_to_list'] }}</a>
+        <h1>{{ t['dashboard'] }}</h1>
+
+        <h2>{{ t['recommendations_heading'] }}</h2>
+        <ul class="rec-list">
+            {% for rec in recommendations %}
+            <li>{{ rec['message'] }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>{{ t['overview_heading'] }}</h2>
+        <div class="stats-row">
+            <div class="stat-box">
+                <span class="num">{{ stats['total'] }}</span>
+                {{ t['total_items'] }}
+            </div>
+            <div class="stat-box">
+                <span class="num">{{ stats['expired_count'] }}</span>
+                {{ t['expired_count_label'] }}
+            </div>
+            <div class="stat-box">
+                <span class="num">{{ stats['urgent_count'] }}</span>
+                {{ t['urgent_count_label'] }}
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card card">
+                <h2 style="margin-top:0;">{{ t['category_chart_heading'] }}</h2>
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="chart-card card">
+                <h2 style="margin-top:0;">{{ t['level_chart_heading'] }}</h2>
+                <canvas id="levelChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <img src="{{ url_for('static', filename='images/watermark.png') }}" class="watermark" alt="watermark">
+
+    <script>
+        const rawCategoryLabels = {{ stats['category_labels'] | tojson }};
+        const categoryMap = {{ category_map | tojson }};
+        const translations = {{ t | tojson }};
+
+        const categoryLabels = rawCategoryLabels.map(function(label) {
+            const key = categoryMap[label];
+            return translations[key] || label;
+        });
+
+        const categoryValues = {{ stats['category_values'] | tojson }};
+        const levelLabels = {{ stats['level_labels'] | tojson }};
+        const levelValues = {{ stats['level_values'] | tojson }};
+        const datasetLabel = "{{ t['chart_dataset_label'] }}";
+
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'pie',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryValues,
+                    backgroundColor: ['#cdb8f0', '#ffaed4', '#ffe1b8', '#dcf7dc', '#a780e8']
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('levelChart'), {
+            type: 'bar',
+            data: {
+                labels: levelLabels,
+                datasets: [{
+                    label: datasetLabel,
+                    data: levelValues,
+                    backgroundColor: '#cdb8f0'
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

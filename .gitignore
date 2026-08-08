@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+inventory.db
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.heic
+.DS_Store
