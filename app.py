@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, jsonify, session
-from database import get_connection, init_db, get_all_items, delete_item, get_item_by_id, update_item, get_dashboard_stats, get_recommendations
+from database import get_connection, get_placeholder, init_db, get_all_items, delete_item, get_item_by_id, update_item, get_dashboard_stats, get_recommendations
 from ocr import extract_text_from_image, find_date_in_text
 from translations import translations, CATEGORY_KEY_MAP
 import os
@@ -46,11 +46,14 @@ def add_item():
     expiry_date = request.form.get("expiry_date")
 
     conn = get_connection()
-    conn.execute(
-        "INSERT INTO items (name, category, expiry_date) VALUES (?, ?, ?)",
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(
+        f"INSERT INTO items (name, category, expiry_date) VALUES ({p}, {p}, {p})",
         (name, category, expiry_date)
     )
     conn.commit()
+    cur.close()
     conn.close()
 
     return redirect("/")
