@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        @font-face {
+            font-family: 'Lookpeach';
+            src: url('/static/fonts/lookpeach.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Lookpeach', sans-serif;
+            background-color: #e2d6f7;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.75) 1.6px, transparent 1.6px);
+            background-size: 26px 26px;
+            color: #333333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 2px solid #333333;
+            border-radius: 28px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: normal;
+            margin: 0 0 24px;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            font-size: 1.05rem;
+            margin: 16px 0 8px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.05rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 12px 20px;
+            outline: none;
+        }
+
+        .error-msg {
+            background: #ffd6d6;
+            border: 2px solid #333333;
+            border-radius: 14px;
+            padding: 10px 16px;
+            margin-top: 16px;
+            font-size: 0.95rem;
+        }
+
+        .submit-btn {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1.1rem;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            padding: 13px 30px;
+            background: #cdb8f0;
+            cursor: pointer;
+            margin-top: 24px;
+            width: 100%;
+        }
+
+        .switch-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #7a5bb5;
+            text-decoration: none;
+        }
+
+        .switch-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>เข้าสู่ระบบ</h1>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <form action="/login" method="POST">
+            <label for="username">ชื่อผู้ใช้:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">รหัสผ่าน:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit" class="submit-btn">เข้าสู่ระบบ</button>
+        </form>
+
+        <a href="/register" class="switch-link">ยังไม่มีบัญชี? สมัครสมาชิก</a>
+    </div>
+</body>
+</html>

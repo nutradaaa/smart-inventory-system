@@ -32,8 +32,16 @@ def init_db():
 
     if DATABASE_URL:
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            )
+        """)
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS items (
                 id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
                 category TEXT,
                 expiry_date TEXT,
@@ -42,8 +50,16 @@ def init_db():
         """)
     else:
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            )
+        """)
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
                 category TEXT,
                 expiry_date TEXT,
@@ -54,6 +70,30 @@ def init_db():
     conn.commit()
     cur.close()
     conn.close()
+
+
+def create_user(username, password_hash):
+    conn = get_connection()
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(
+        f"INSERT INTO users (username, password_hash) VALUES ({p}, {p})",
+        (username, password_hash)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def get_user_by_username(username):
+    conn = get_connection()
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(f"SELECT * FROM users WHERE username = {p}", (username,))
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
+    return user
 
 
 def calculate_status(expiry_date_str):
@@ -77,13 +117,13 @@ def calculate_status(expiry_date_str):
         return {"code": "normal", "level": "normal", "days_left": days_left}
 
 
-def get_all_items(search=None, category=None):
+def get_all_items(user_id, search=None, category=None):
     conn = get_connection()
     cur = conn.cursor()
     p = get_placeholder()
 
-    query = "SELECT * FROM items WHERE 1=1"
-    params = []
+    query = f"SELECT * FROM items WHERE user_id = {p}"
+    params = [user_id]
 
     if search:
         query += f" AND name LIKE {p}"
@@ -109,44 +149,45 @@ def get_all_items(search=None, category=None):
     return items
 
 
-def delete_item(item_id):
+def delete_item(item_id, user_id):
     conn = get_connection()
     cur = conn.cursor()
     p = get_placeholder()
-    cur.execute(f"DELETE FROM items WHERE id = {p}", (item_id,))
+    cur.execute(f"DELETE FROM items WHERE id = {p} AND user_id = {p}", (item_id, user_id))
     conn.commit()
     cur.close()
     conn.close()
 
 
-def get_item_by_id(item_id):
+def get_item_by_id(item_id, user_id):
     conn = get_connection()
     cur = conn.cursor()
     p = get_placeholder()
-    cur.execute(f"SELECT * FROM items WHERE id = {p}", (item_id,))
+    cur.execute(f"SELECT * FROM items WHERE id = {p} AND user_id = {p}", (item_id, user_id))
     item = cur.fetchone()
     cur.close()
     conn.close()
     return item
 
 
-def update_item(item_id, name, category, expiry_date):
+def update_item(item_id, user_id, name, category, expiry_date):
     conn = get_connection()
     cur = conn.cursor()
     p = get_placeholder()
     cur.execute(
-        f"UPDATE items SET name = {p}, category = {p}, expiry_date = {p} WHERE id = {p}",
-        (name, category, expiry_date, item_id)
+        f"UPDATE items SET name = {p}, category = {p}, expiry_date = {p} WHERE id = {p} AND user_id = {p}",
+        (name, category, expiry_date, item_id, user_id)
     )
     conn.commit()
     cur.close()
     conn.close()
 
 
-def get_dashboard_stats():
+def get_dashboard_stats(user_id):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM items")
+    p = get_placeholder()
+    cur.execute(f"SELECT * FROM items WHERE user_id = {p}", (user_id,))
     rows = cur.fetchall()
     cur.close()
     conn.close()
@@ -186,10 +227,11 @@ def get_dashboard_stats():
     }
 
 
-def get_recommendations(t):
+def get_recommendations(t, user_id):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM items")
+    p = get_placeholder()
+    cur.execute(f"SELECT * FROM items WHERE user_id = {p}", (user_id,))
     rows = cur.fetchall()
     cur.close()
     conn.close()
