@@ -5,7 +5,7 @@ from translations import translations, CATEGORY_KEY_MAP
 import os
 
 app = Flask(__name__)
-app.secret_key = "smart-inventory-secret-key-change-later"
+app.secret_key = os.environ.get("SECRET_KEY", "smart-inventory-secret-key-change-later")
 init_db()
 
 UPLOAD_FOLDER = "uploads"
