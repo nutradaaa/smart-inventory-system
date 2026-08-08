@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>{{ t['login_heading'] }}</title>
     <style>
         @font-face {
             font-family: 'Lookpeach';
@@ -21,9 +21,36 @@
             background-size: 26px 26px;
             color: #333333;
             min-height: 100vh;
+        }
+
+        .lang-switch-top {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px 0 0;
+        }
+
+        .lang-btn {
+            font-family: 'Lookpeach', sans-serif;
+            font-size: 1rem;
+            padding: 8px 22px;
+            border-radius: 999px;
+            border: 2px solid #333333;
+            text-decoration: none;
+            color: #333333;
+            background: #cdb8f0;
+        }
+
+        .lang-btn.active {
+            background: #a780e8;
+        }
+
+        .center-wrap {
+            min-height: calc(100vh - 70px);
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
         }
 
         .card {
@@ -92,24 +119,32 @@
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>เข้าสู่ระบบ</h1>
+    <div class="lang-switch-top">
+        <a href="/set-language/th" class="lang-btn {% if lang == 'th' %}active{% endif %}">ไทย</a>
+        <a href="/set-language/en" class="lang-btn {% if lang == 'en' %}active{% endif %}">English</a>
+        <a href="/set-language/ko" class="lang-btn {% if lang == 'ko' %}active{% endif %}">한국어</a>
+    </div>
 
-        {% if error %}
-        <div class="error-msg">{{ error }}</div>
-        {% endif %}
+    <div class="center-wrap">
+        <div class="card">
+            <h1>{{ t['login_heading'] }}</h1>
 
-        <form action="/login" method="POST">
-            <label for="username">ชื่อผู้ใช้:</label>
-            <input type="text" id="username" name="username" required>
+            {% if error %}
+            <div class="error-msg">{{ error }}</div>
+            {% endif %}
 
-            <label for="password">รหัสผ่าน:</label>
-            <input type="password" id="password" name="password" required>
+            <form action="/login" method="POST">
+                <label for="username">{{ t['label_username'] }}</label>
+                <input type="text" id="username" name="username" required>
 
-            <button type="submit" class="submit-btn">เข้าสู่ระบบ</button>
-        </form>
+                <label for="password">{{ t['label_password'] }}</label>
+                <input type="password" id="password" name="password" required>
 
-        <a href="/register" class="switch-link">ยังไม่มีบัญชี? สมัครสมาชิก</a>
+                <button type="submit" class="submit-btn">{{ t['login_btn'] }}</button>
+            </form>
+
+            <a href="/register" class="switch-link">{{ t['switch_to_register'] }}</a>
+        </div>
     </div>
 </body>
 </html>

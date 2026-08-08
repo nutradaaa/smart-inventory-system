@@ -39,14 +39,14 @@ def register():
 
         existing_user = get_user_by_username(username)
         if existing_user:
-            return render_template("register.html", error="ชื่อผู้ใช้นี้มีอยู่แล้ว กรุณาเลือกชื่ออื่น", lang=lang)
+            return render_template("register.html", error=t["error_username_exists"], t=t, lang=lang)
 
         password_hash = generate_password_hash(password, method="pbkdf2:sha256")
         create_user(username, password_hash)
 
         return redirect("/login")
 
-    return render_template("register.html", error=None, lang=lang)
+    return render_template("register.html", error=None, t=t, lang=lang)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -60,13 +60,13 @@ def login():
         user = get_user_by_username(username)
 
         if not user or not check_password_hash(user["password_hash"], password):
-            return render_template("login.html", error="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", lang=lang)
+            return render_template("login.html", error=t["error_invalid_login"], t=t, lang=lang)
 
         session["user_id"] = user["id"]
         session["username"] = user["username"]
         return redirect("/")
 
-    return render_template("login.html", error=None, lang=lang)
+    return render_template("login.html", error=None, t=t, lang=lang)
 
 
 @app.route("/logout")
