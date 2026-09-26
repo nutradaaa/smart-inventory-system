@@ -74,6 +74,7 @@ translations = {
         "email_subject": "แจ้งเตือนสินค้าใกล้หมดอายุ - Smart Inventory",
         "email_intro": "รายการสินค้าที่ใกล้หมดอายุของคุณ:",
         "email_footer": "เข้าดูรายละเอียดเพิ่มเติมได้ที่เว็บ Smart Inventory System ของคุณ",
+        "label_email": "อีเมล (สำหรับรับแจ้งเตือน):",
     },
     "en": {
         "page_title": "Smart Inventory System",
@@ -140,6 +141,7 @@ translations = {
         "register_heading": "Register",
         "label_username": "Username:",
         "label_password": "Password:",
+        "label_email": "Email (for notifications):",
         "login_btn": "Login",
         "register_btn": "Register",
         "switch_to_register": "Don't have an account? Register",
@@ -216,6 +218,7 @@ translations = {
         "register_heading": "회원가입",
         "label_username": "사용자 이름:",
         "label_password": "비밀번호:",
+        "label_email": "이메일 (알림 수신용):",
         "login_btn": "로그인",
         "register_btn": "회원가입",
         "switch_to_register": "계정이 없으신가요? 회원가입",
