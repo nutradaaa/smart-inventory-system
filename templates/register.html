@@ -76,6 +76,7 @@
         }
 
         input[type="text"],
+        input[type="email"],
         input[type="password"] {
             width: 100%;
             font-family: 'Lookpeach', sans-serif;
@@ -136,6 +137,9 @@
             <form action="/register" method="POST">
                 <label for="username">{{ t['label_username'] }}</label>
                 <input type="text" id="username" name="username" required>
+
+                <label for="email">อีเมล (สำหรับรับแจ้งเตือน):</label>
+                <input type="email" id="email" name="email" required>
 
                 <label for="password">{{ t['label_password'] }}</label>
                 <input type="password" id="password" name="password" required>

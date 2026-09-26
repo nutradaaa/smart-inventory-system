@@ -35,7 +35,9 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
+                password_hash TEXT NOT NULL,
+                email TEXT,
+                lang TEXT DEFAULT 'th'
             )
         """)
         cur.execute("""
@@ -53,7 +55,9 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
+                password_hash TEXT NOT NULL,
+                email TEXT,
+                lang TEXT DEFAULT 'th'
             )
         """)
         cur.execute("""
@@ -72,13 +76,13 @@ def init_db():
     conn.close()
 
 
-def create_user(username, password_hash):
+def create_user(username, password_hash, email=None, lang="th"):
     conn = get_connection()
     cur = conn.cursor()
     p = get_placeholder()
     cur.execute(
-        f"INSERT INTO users (username, password_hash) VALUES ({p}, {p})",
-        (username, password_hash)
+        f"INSERT INTO users (username, password_hash, email, lang) VALUES ({p}, {p}, {p}, {p})",
+        (username, password_hash, email, lang)
     )
     conn.commit()
     cur.close()
@@ -94,6 +98,26 @@ def get_user_by_username(username):
     cur.close()
     conn.close()
     return user
+
+
+def update_user_language(user_id, lang):
+    conn = get_connection()
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(f"UPDATE users SET lang = {p} WHERE id = {p}", (lang, user_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def get_all_users_with_email():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, username, email, lang FROM users WHERE email IS NOT NULL AND email != ''")
+    users = cur.fetchall()
+    cur.close()
+    conn.close()
+    return users
 
 
 def calculate_status(expiry_date_str):
@@ -285,3 +309,20 @@ def get_recommendations(t, user_id):
         })
 
     return recommendations
+
+
+def get_items_by_user(user_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    p = get_placeholder()
+    cur.execute(f"SELECT * FROM items WHERE user_id = {p}", (user_id,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    items = []
+    for row in rows:
+        item = dict(row)
+        item["status"] = calculate_status(row["expiry_date"])
+        items.append(item)
+    return items

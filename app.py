@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, jsonify, session
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import get_connection, get_placeholder, init_db, get_all_items, delete_item, get_item_by_id, update_item, get_dashboard_stats, get_recommendations, create_user, get_user_by_username
+from database import get_connection, get_placeholder, init_db, get_all_items, delete_item, get_item_by_id, update_item, get_dashboard_stats, get_recommendations, create_user, get_user_by_username, get_all_users_with_email, get_items_by_user, calculate_status, update_user_language
 from ocr import extract_text_from_image, find_date_in_text
 from translations import translations, CATEGORY_KEY_MAP
+from emailer import send_email
 import os
 
 app = Flask(__name__)
@@ -12,6 +13,8 @@ init_db()
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+REMINDER_SECRET = os.environ.get("REMINDER_SECRET", "change-this-secret")
 
 
 def get_lang_and_t():
@@ -36,13 +39,14 @@ def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+        email = request.form.get("email")
 
         existing_user = get_user_by_username(username)
         if existing_user:
             return render_template("register.html", error=t["error_username_exists"], t=t, lang=lang)
 
         password_hash = generate_password_hash(password, method="pbkdf2:sha256")
-        create_user(username, password_hash)
+        create_user(username, password_hash, email, lang)
 
         return redirect("/login")
 
@@ -64,6 +68,7 @@ def login():
 
         session["user_id"] = user["id"]
         session["username"] = user["username"]
+        session["lang"] = user["lang"] or "th"
         return redirect("/")
 
     return render_template("login.html", error=None, t=t, lang=lang)
@@ -92,6 +97,8 @@ def home():
 def set_language(lang_code):
     if lang_code in translations:
         session["lang"] = lang_code
+        if "user_id" in session:
+            update_user_language(session["user_id"], lang_code)
     return redirect(request.referrer or "/")
 
 @app.route("/add-item")
@@ -176,6 +183,44 @@ def scan_expiry():
         return jsonify({"success": True, "date": found_date, "raw_text": text})
     else:
         return jsonify({"success": False, "message": "ไม่พบวันที่ในภาพ", "raw_text": text})
+
+
+@app.route("/send-reminders")
+def send_reminders():
+    secret = request.args.get("secret")
+    if secret != REMINDER_SECRET:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    users = get_all_users_with_email()
+    sent_count = 0
+
+    for user in users:
+        user_lang = user["lang"] or "th"
+        t = translations.get(user_lang, translations["th"])
+
+        items = get_items_by_user(user["id"])
+        urgent_lines = []
+
+        for item in items:
+            status = calculate_status(item["expiry_date"])
+            if status["level"] in ("expired", "urgent", "high", "medium"):
+                category_key = CATEGORY_KEY_MAP.get(item["category"], item["category"])
+                category_display = t.get(category_key, item["category"])
+                status_label = t.get("status_" + status["code"], status["code"])
+                urgent_lines.append(
+                    f"- {item['name']} ({category_display}) {t['col_expiry']}: {item['expiry_date']} — {status_label} ({status['days_left']} {t['days_suffix']})"
+                )
+
+        if urgent_lines:
+            body = t["email_intro"] + "\n\n" + "\n".join(urgent_lines) + "\n\n" + t["email_footer"]
+            try:
+                send_email(user["email"], t["email_subject"], body)
+                sent_count += 1
+            except Exception as e:
+                print(f"ส่งอีเมลไม่สำเร็จสำหรับ {user['username']}: {e}")
+
+    return jsonify({"success": True, "emails_sent": sent_count})
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

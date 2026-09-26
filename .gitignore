@@ -7,3 +7,4 @@ uploads/*.jpeg
 uploads/*.png
 uploads/*.heic
 .DS_Store
+.env

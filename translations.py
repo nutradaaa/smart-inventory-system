@@ -71,6 +71,9 @@ translations = {
         "error_username_exists": "ชื่อผู้ใช้นี้มีอยู่แล้ว กรุณาเลือกชื่ออื่น",
         "error_invalid_login": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
         "logout": "ออกจากระบบ",
+        "email_subject": "แจ้งเตือนสินค้าใกล้หมดอายุ - Smart Inventory",
+        "email_intro": "รายการสินค้าที่ใกล้หมดอายุของคุณ:",
+        "email_footer": "เข้าดูรายละเอียดเพิ่มเติมได้ที่เว็บ Smart Inventory System ของคุณ",
     },
     "en": {
         "page_title": "Smart Inventory System",
@@ -144,6 +147,9 @@ translations = {
         "error_username_exists": "This username already exists. Please choose another.",
         "error_invalid_login": "Invalid username or password",
         "logout": "Logout",
+        "email_subject": "Expiring Items Reminder - Smart Inventory",
+        "email_intro": "Your items that are expiring soon:",
+        "email_footer": "Log in to your Smart Inventory System for more details.",
     },
     "ko": {
         "page_title": "Smart Inventory System",
@@ -217,6 +223,9 @@ translations = {
         "error_username_exists": "이미 사용 중인 사용자 이름입니다. 다른 이름을 선택해주세요.",
         "error_invalid_login": "사용자 이름 또는 비밀번호가 올바르지 않습니다",
         "logout": "로그아웃",
+        "email_subject": "유통기한 임박 알림 - Smart Inventory",
+        "email_intro": "유통기한이 임박한 상품 목록입니다:",
+        "email_footer": "자세한 내용은 Smart Inventory System 웹사이트에서 확인하세요.",
     },
 }
 
